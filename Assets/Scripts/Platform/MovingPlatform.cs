@@ -5,7 +5,7 @@ namespace DefaultNamespace
 {
     public class MovingPlatform: MonoBehaviour
     {
-        public Vector3 moveDirection = Vector3.right; // Direction to move
+        public Vector3 moveDirection = Vector3.forward; // Direction to move
         public float speed = 3f; // Movement speed
         public bool loopMovement = true; // Enable looping movement
         public float moveDistance = 5f; // Distance before turning back

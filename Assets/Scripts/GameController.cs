@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 using Plane = DefaultNamespace.Plane;
 using Random = UnityEngine.Random;
 
@@ -11,17 +12,24 @@ public class GameController : MonoBehaviour
     public static GameController Instance;
     
     [SerializeField] private List<Material> colorsToRandom;
+    [SerializeField] private List<Color> colors;
     [SerializeField] private Plane _prefabPlane;
     [SerializeField] private List<Plane> _planes = new List<Plane>();
     [SerializeField] private List<Plane> _teleportDoor = new List<Plane>();
     [SerializeField] private float countDown = 5f;
     [SerializeField] private float disappearTime = 2f;
-    [SerializeField] private Canvas _gameOverUI;
+    [SerializeField] private float coolDownTeleport = 5f;
+    [SerializeField] private Text _gameOverUI;
+    [SerializeField] private Text _countdown;
+    [SerializeField] private Image _colorNext;
     [SerializeField] private PhysicsCharacterController _character;
     [SerializeField] private Transform _startOverPoint;
     private float currentTime = 0;
+    private float countDownTeleport = 0f;
     private bool isAppearing = false;
     private bool _gameOver = false;
+    private bool _canTeleport = true;
+    private int _indexToDisapper;
 
     private void Awake()
     {
@@ -43,8 +51,8 @@ public class GameController : MonoBehaviour
                 string[] values = line.Split(','); // Split CSV columns
                 Plane plane = Instantiate(_prefabPlane);
                 int index = Random.Range(0, colorsToRandom.Count);
-                plane.SetColor(colorsToRandom[index],index);
                 plane.SetData(Convert.ToSingle(values[0]),Convert.ToSingle(values[1]),Convert.ToInt32(values[2]));
+                plane.SetColor(colorsToRandom[index],index);
                 _planes.Add(plane);
                 Debug.Log(string.Join(" | ", values)); // Display in Console
             }
@@ -55,6 +63,8 @@ public class GameController : MonoBehaviour
         }
         #endregion
         currentTime = countDown;
+        _indexToDisapper = Random.Range(0, colorsToRandom.Count);
+        _colorNext.color = colors[_indexToDisapper];
         StartOver();
     }
 
@@ -69,7 +79,19 @@ public class GameController : MonoBehaviour
 #endif
         }
         currentTime -= Time.deltaTime; // Decrease time
-        //countdownText.text = "Time Left: " + Mathf.CeilToInt(currentTime);
+        _countdown.text = Mathf.CeilToInt(currentTime).ToString();
+
+        if (!_canTeleport)
+        {
+            countDownTeleport -= Time.deltaTime;
+
+            if (countDownTeleport <= 0)
+            {
+                _canTeleport = true;
+                countDownTeleport = coolDownTeleport;
+            }
+        }
+        
         if (currentTime <= 0)
         {
             if(!isAppearing) Disappear();
@@ -80,6 +102,8 @@ public class GameController : MonoBehaviour
     public void Appear()
     {
         isAppearing = false;
+        _indexToDisapper = Random.Range(0, colorsToRandom.Count);
+        _colorNext.color = colors[_indexToDisapper];
         currentTime = countDown;
         foreach (var plane in _planes)
         {
@@ -91,8 +115,7 @@ public class GameController : MonoBehaviour
     {
         isAppearing = true;
         currentTime = disappearTime;
-        int _indexRemain = Random.Range(0, colorsToRandom.Count);
-        List<Plane> remaining = _planes.Where(plane => plane.GetIndexColor() != _indexRemain).ToList();
+        List<Plane> remaining = _planes.Where(plane => plane.GetIndexColor() != _indexToDisapper).ToList();
         foreach (var plane in remaining)
         {
             plane.gameObject.SetActive(false);
@@ -111,14 +134,20 @@ public class GameController : MonoBehaviour
         _teleportDoor.Add(platform);
     }
     
-    public void Teleport(Collider collider)
+    public void Teleport()
     {
-        Plane destination = _teleportDoor[Random.Range(0, _teleportDoor.Count)];
-        collider.transform.position = destination.transform.position;
+        if (!_canTeleport) return;
+        int index = Random.Range(0, _teleportDoor.Count);
+        Plane destination = _teleportDoor[index];
+        Debug.Log("Teleport to " + index);
+        _canTeleport = false;
+        _character.transform.position = destination.transform.position + Vector3.up * 0.3f;
     }
 
     public void StartOver()
     {
+        _canTeleport = true;
+        countDownTeleport = coolDownTeleport;
         _character.transform.position = _startOverPoint.position;
     }
 }

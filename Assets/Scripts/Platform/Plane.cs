@@ -13,7 +13,7 @@ namespace DefaultNamespace
         public void SetData(float x, float y, int type)
         {
             _data = new PlaneData(x, y, type);
-            transform.position = new Vector3(x, 1, y);
+            transform.position = new Vector3(x, 0f, y);
             if (type == 1)
             {
                 gameObject.AddComponent<MovingPlatform>();
@@ -21,16 +21,16 @@ namespace DefaultNamespace
             {
                 gameObject.AddComponent<TeleportPortal>();
                 GameController.Instance.AddToTeleportList(this);
-            } else if (type == 3)
-            {
-                gameObject.AddComponent<Goal>();
-            }
+            } 
         }
         
         public void SetColor(Material material, int index)
         {
-            _indexColor = index;
-            GetComponent<MeshRenderer>().material = material;
+            if (_data.type != 2)
+            {
+                _indexColor = index;
+                GetComponent<MeshRenderer>().material = material;
+            }
         }
 
         public int GetIndexColor()
