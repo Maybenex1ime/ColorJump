@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace DefaultNamespace
 {
@@ -23,12 +24,28 @@ namespace DefaultNamespace
             {
                 // Ping-pong movement
                 float offset = Mathf.PingPong(Time.time * speed, moveDistance);
-                transform.position = startPosition + moveDirection.normalized * offset;
+                transform.position = startPosition + moveDirection.normalized * offset;     
             }
             else
             {
                 // Constant movement in one direction
                 transform.position += moveDirection.normalized * speed * Time.deltaTime;
+            }
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            if (other.gameObject.CompareTag("Player"))
+            {
+                other.transform.SetParent(transform);
+            }
+        }
+
+        private void OnCollisionExit(Collision other)
+        {
+            if (other.gameObject.CompareTag("Player"))
+            {
+                other.transform.SetParent(null);
             }
         }
     }

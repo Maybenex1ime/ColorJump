@@ -9,6 +9,7 @@ public class PhysicsCharacterController : MonoBehaviour
     public float mouseSensitivity = 2f;
     private float verticalRotation = 0f;
     private Transform cameraTransform;
+    private bool _canControl = true;
     
     // Ground Movement
     private Rigidbody rb;
@@ -37,6 +38,8 @@ public class PhysicsCharacterController : MonoBehaviour
         playerHeight = GetComponent<CapsuleCollider>().height * transform.localScale.y;
         raycastDistance = (playerHeight / 2) + 0.2f;
 
+        _canControl = true;
+        
         // Hides the mouse
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -44,6 +47,7 @@ public class PhysicsCharacterController : MonoBehaviour
 
     void Update()
     {
+        if (!_canControl) return;
         moveHorizontal = Input.GetAxisRaw("Horizontal");
         moveForward = Input.GetAxisRaw("Vertical");
 
@@ -69,6 +73,7 @@ public class PhysicsCharacterController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!_canControl) return;
         MovePlayer();
         ApplyJumpPhysics();
     }
@@ -122,5 +127,11 @@ public class PhysicsCharacterController : MonoBehaviour
             // Rising: Change multiplier to make player reach peak of jump faster
             rb.velocity += Vector3.up * Physics.gravity.y * ascendMultiplier  * Time.fixedDeltaTime;
         }
+    }
+
+    public void TurnOffControl()
+    {
+        rb.velocity = Vector3.zero;
+        _canControl = false;
     }
 }

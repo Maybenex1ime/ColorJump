@@ -8,13 +8,27 @@ using Random = UnityEngine.Random;
 
 public class GameController : MonoBehaviour
 {
+    public static GameController Instance;
+    
     [SerializeField] private List<Material> colorsToRandom;
     [SerializeField] private Plane _prefabPlane;
     [SerializeField] private List<Plane> _planes = new List<Plane>();
+    [SerializeField] private List<Plane> _teleportDoor = new List<Plane>();
     [SerializeField] private float countDown = 5f;
     [SerializeField] private float disappearTime = 2f;
+    [SerializeField] private Canvas _gameOverUI;
+    [SerializeField] private PhysicsCharacterController _character;
+    [SerializeField] private Transform _startOverPoint;
     private float currentTime = 0;
     private bool isAppearing = false;
+    private bool _gameOver = false;
+
+    private void Awake()
+    {
+        if(Instance != null) Destroy(Instance);
+        Instance = this;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -39,19 +53,21 @@ public class GameController : MonoBehaviour
         {
             Debug.LogError("CSV file not found at: " + filePath);
         }
-        
         #endregion
-        
         currentTime = countDown;
-        for (int i = 0; i < 10; i++)
-        {
-           
-        }
+        StartOver();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(_gameOver && Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false; // Stops play mode in Unity Editor
+#endif
+        }
         currentTime -= Time.deltaTime; // Decrease time
         //countdownText.text = "Time Left: " + Mathf.CeilToInt(currentTime);
         if (currentTime <= 0)
@@ -81,5 +97,28 @@ public class GameController : MonoBehaviour
         {
             plane.gameObject.SetActive(false);
         }
+    }
+
+    public void GameOver()
+    {
+        _gameOverUI.gameObject.SetActive(true);
+        _character.TurnOffControl();
+        _gameOver = true;
+    }
+
+    public void AddToTeleportList(Plane platform)
+    {
+        _teleportDoor.Add(platform);
+    }
+    
+    public void Teleport(Collider collider)
+    {
+        Plane destination = _teleportDoor[Random.Range(0, _teleportDoor.Count)];
+        collider.transform.position = destination.transform.position;
+    }
+
+    public void StartOver()
+    {
+        _character.transform.position = _startOverPoint.position;
     }
 }

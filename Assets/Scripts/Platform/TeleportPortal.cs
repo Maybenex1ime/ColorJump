@@ -10,7 +10,7 @@ namespace DefaultNamespace
         {
             if (other.CompareTag("Player")) // Ensure the player has the tag "Player"
             {
-                other.transform.position = targetPortal.position; // Teleport to the target portal
+                GameController.Instance.Teleport(other);
                 Debug.Log("Player teleported to " + targetPortal.name);
             }
         }

@@ -20,6 +20,10 @@ namespace DefaultNamespace
             } else if (type == 2)
             {
                 gameObject.AddComponent<TeleportPortal>();
+                GameController.Instance.AddToTeleportList(this);
+            } else if (type == 3)
+            {
+                gameObject.AddComponent<Goal>();
             }
         }
         
@@ -39,7 +43,7 @@ namespace DefaultNamespace
     {
         public float x;
         public float y;
-        public int type; //Moving or teleport
+        public int type; //Moving or teleport or goal 
 
         public PlaneData(float x, float y, int type)
         {
